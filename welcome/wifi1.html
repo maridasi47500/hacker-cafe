@@ -1,0 +1,55 @@
+<h1 class="wifi1">
+	<span class="h">
+		h
+	</span>
+	<span class="a">
+		a
+	</span>
+	<span class="c">
+		c
+	</span>
+	<span class="k">
+		k
+	</span>
+	<span class="e">
+		e
+	</span>
+	<span class="r">
+		r
+		
+	</span>
+	<span class="hey">
+		
+	</span>
+	<span class="c">
+	c	
+	</span>
+	<span class="a">
+		a
+		
+	</span>
+	<span class="f">
+		f
+		
+	</span>
+	<span class="e">
+		e
+		
+	</span>
+
+</h1>
+<span>
+                &#128065
+        </span>
+        <span>
+                <strike>
+                &#128065
+                </strike>
+        </span>
+
+<form class="publishmytext">
+	<input type="hidden" value="<%=session["user_id"]%>"/>
+	<textarea name="content"></textarea>
+	<input type="submit" value="publier"/>
+</form>
+<%=render_collection(collection=db.Post.all(), partial='welcome/_post.html', as_='post')%>
