@@ -1,8 +1,7 @@
 
-# chat-html
-# chat-html
 - faire 
 ````
-sh chatter_avec_chatgpt.sh
+sh mysite.sh
 ````
 # hacker-cafe
+![alt text](cafe1.png) 
