@@ -17,132 +17,178 @@ myfavdirectory=filename
 index = 2 
 createtable=""
 columns="("
+formhtml="<form  enctype=\"multipart/form-data\" method=\"POST\">"
 values="("
+mysession="["
 myparam=","
 items=sys.argv
+referencesstr=""
+references=""
+requestfiles="""
+"""
+sqltousles="""
+"""
+sqltousles2="""
+"""
 while index < (len(items)):
 
     try:
       print(index, items[index])
+      hasfile=""
+      referencesstr=""
+      checkbox=""
+      radiobutton=""
       paramname=items[index]
+      if ":checkbox" in paramname: 
+          checkbox="yes"
+      if ":radio" in paramname: 
+          radiobutton="yes"
+
+      if ":file" in paramname: 
+          hasfile="yes"
+      if ":references" in paramname: 
+          referencesstr="yes"
+      paramname=items[index].replace(":radio","").replace(":checkbox","").replace(":file","").replace(":references","")
       print(items[(index+1)])
     except:
       myparam=""
     index += 1
+    myfieldtype="text"
+    if radiobutton == "yes":
+        myfieldtype="radio"
+    if checkbox == "yes":
+        myfieldtype="checkbox"
+    if hasfile == "yes":
+      myfieldtype="file"
+      requestfiles+="""
+        uploaded_file = request.files['{paramname}']
+        if uploaded_file.filename != '':
+            uploaded_file.save(os.path.join('static/photos', uploaded_file.filename))
+
+        hey["{paramname}"]=uploaded_file.filename
+""".format(paramname=paramname)
+    if paramname == "password":
+        myfieldtype = "password"
+    if paramname == "email":
+        myfieldtype = "email"
+    if paramname == "telephone" or paramname == "phone":
+        myfieldtype = "telephone"
+        
+
+
+    if referencesstr == "yes":
+        references+=", tousles{paramname}=tousles{paramname}".format(paramname=paramname.replace("_id",""))
+        sqltousles+="""
+        tousles{paramname}= query_db("select * from {paramname}")
+""".format(paramname=paramname.replace("_id",""))
+        sqltousles2+="""
+    tousles{paramname}= query_db("select * from {paramname}")
+""".format(paramname=paramname.replace("_id",""))
+        formhtml+="<div class=\"field\"><label for=\"somefield{paramname}\">{paramname}</label><select id=\"somefield{paramname}\" name=\"{paramname}\">".format(myparam=myparam,paramname=paramname,mytype=myfieldtype)
+        formhtml+="{% "+"for some{paramname} in tousles{paramname}".format(myparam=myparam,paramname=paramname.replace("_id",""),mytype=myfieldtype)+" %}"
+        formhtml+="<option value=\"{{ some"+paramname.replace("_id","")+"['id'] }}\">{{ some"+paramname.replace("_id","")+"['name'] }}</option>{% endfor %}"
+        formhtml+="</select></div>"
+
+    elif radiobutton == "yes":
+        formhtml+="<div class=\"field\"><label for=\"somefield{paramname}\">{paramname}</label><label for=\"somefield{paramname}1\"><input type=\"{mytype}\" id=\"somefield{paramname}1\" name=\"{paramname}\" value=\"1\"/>yes</label><label for=\"somefield{paramname}2\"><input type=\"{mytype}\" id=\"somefield{paramname}2\" name=\"{paramname}\" value=\"0\"/>no</label></div>".format(myparam=myparam,paramname=paramname,mytype=myfieldtype)
+    elif checkbox == "yes":
+        formhtml+="<div class=\"field\"><input type=\"{mytype}\" id=\"somefield{paramname}\" name=\"{paramname}\" value=\"1\"/><label for=\"somefield{paramname}\">{paramname}</label></div>".format(myparam=myparam,paramname=paramname,mytype=myfieldtype)
+    else:
+        formhtml+="<div class=\"field\"><label for=\"somefield{paramname}\">{paramname}</label><input type=\"{mytype}\" id=\"somefield{paramname}\" name=\"{paramname}\"/></div>".format(myparam=myparam,paramname=paramname,mytype=myfieldtype)
+
+
+    mysession+="'{paramname}'{myparam}".format(myparam=myparam,paramname=paramname)
     columns+="{paramname}{myparam}".format(myparam=myparam,paramname=paramname)
     values+=":{paramname}{myparam}".format(myparam=myparam,paramname=paramname)
     createtable+="""        {paramname} text{myparam}
     """.format(myparam=myparam,paramname=paramname)
 columns+=")"
 values+=")"
-mystr="""# coding=utf-8
-import sqlite3
-import sys
-import re
-from model import Model
-class {modelname}(Model):
-    def __init__(self):
-        self.con=sqlite3.connect(self.mydb)
-        self.con.row_factory = sqlite3.Row
-        self.cur=self.con.cursor()
-        self.cur.execute(\"\"\"create table if not exists {filename}(
+mysession+="]"
+mystr="""create table if not exists {filename}(
         id integer primary key autoincrement,
 """
 mystr+=createtable
+mystr+="  , created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP"
 
-mystr+=""",
-    Timestamp DATETIME DEFAULT CURRENT_TIMESTAMP                );\"\"\")
-        self.con.commit()
-        #self.con.close()
-    def getall(self):
-        self.cur.execute("select * from {filename}")
 
-        row=self.cur.fetchall()
-        return row
-    def deletebyid(self,myid):
-
+mystr+="""                );
 """
-mystr+="""        self.cur.execute("delete from {filename} where id = ?",(myid,))
-        job=self.cur.fetchall()
-        self.con.commit()
-        return None
-    def getbyid(self,myid):
-        self.cur.execute("select * from {filename} where id = ?",(myid,))
-        row=dict(self.cur.fetchone())
-        print(row["id"], "row id")
-        job=self.cur.fetchall()
-        return row
-    def create(self,params):
-        print("ok")
-        myhash={myhash}
-        for x in params:
-            if 'confirmation' in x:
-                continue
-            if 'envoyer' in x:
-                continue
-            if '[' not in x and x not in ['routeparams']:
-                #print("my params",x,params[x])
-                try:
-                  myhash[x]=str(params[x].decode())
-                except:
-                  myhash[x]=str(params[x])
-        print("M Y H A S H")
-        print(myhash,myhash.keys())
-        myid=None
+selectall= "select * from {filename}"
+
+delete="""delete from {filename} where id = ?",(myid,)"""
+selectone="""select * from {filename} where id = ?",(myid,)"""
+addone="""@app.route("/add_one_{filename}", methods=["GET","POST"])
+def add_one_{filename}():
+
+    if request.method == 'POST':
+
+        the_username = "anonyme"
+        hey=dict(request.form)"""
+addone+=requestfiles
+addone+=sqltousles
+
+addone+="""
+        one_user = query_db("insert into {filename} {columns} values {values}",hey)
+        user = query_db('select * from {filename}')
+"""
+if filename == "user":
+    addone+="""
+        last_user = query_db("select * from {filename} where email = ? and password = ?",[hey["email"], hey["password"]], one=True)
+        session["current_user_id"]=last_user["id"]
+        for x in {mysession}:
+            session[x]=hey[x]
+
+""".format(filename=filename, mysession=mysession,columns=columns,values=values)
+addone+="""
+        return render_template("{filename}form.html", {filename}s=user, one_user=one_user, the_title="add new {filename}"{references})
+""".format(filename=filename, mysession=mysession,columns=columns,values=values,references=references)
+addone+=sqltousles2
+addone+="""
+    user = query_db('select * from {filename}')
+    one_user = query_db("select * from {filename} limit 1", one=True)
+    return render_template("{filename}form.html", {filename}s=user, one_user=one_user, the_title="add new {filename}"{references})
+
+""".format(filename=filename, mysession=mysession,columns=columns,values=values,references=references)
+if filename == "user":
+    addone+="""
+@app.route("/{filename}_sign_out", methods=["GET","POST"])
+def {filename}_sign_out():
+    if request.method == 'POST':
+        session["current_user_id"]=""
+        for x in {mysession}:
+            session[x]=""
+        return redirect("/")
+
+
+@app.route("/{filename}_log_in", methods=["GET","POST"])
+def {filename}_login():
+    if request.method == 'POST':
+        hey=request.form
+        last_user = query_db("select * from {filename} where email = ? and password = ?",[hey["email"], hey["password"]], one=True)
         try:
-          self.cur.execute("insert into {filename} {columns} values {values}",myhash)
-          self.con.commit()
-          myid=str(self.cur.lastrowid)
-        except Exception as e:
-          print("my error"+str(e))
-        azerty={notice}
-        azerty["{filename}_id"]=myid
-        azerty["notice"]="votre {filename} a été ajouté"
-        return azerty
+            session["current_user_id"]=last_user["id"]
+            for x in {mysession}:
+                session[x]=hey[x]
+        except:
+            return render_template("{filename}login.html")
+    return render_template("{filename}login.html")
+""".format(filename=filename,mysession=mysession,columns=columns,values=values)
 
 
+with open("app.py", "a") as myfile:
+    myfile.write(addone.format(filename=filename,columns=columns,values=values))
+with open("schema.sql", "a") as myfile:
+    myfile.write(mystr.format(filename=filename))
+with open("templates/hey.html", "a") as myfile:
+    myfile.write("<a href=\"/add_one_{filename}\"> add one {filename}</a>".format(filename=filename))
 
 
-"""
-if not os.path.isfile(filename+".py"):
-  f = open(filename+".py", "w") 
-  res=(mystr.format(modelname=modelname,filename=filename,columns=columns,values=values,myhash={},notice={}))
-  print(res)
-  f.write(res)
-  f.close()
+with open("templates/"+filename+"form.html", "w") as myfile:
+    myfile.write("{% extends 'base.html' %}{% block content %}"+formhtml+"<div class=\"actions\"><input type=\"submit\"/></div></form>" + "{% for x in "+filename+"s %}{{"+ "x[\""+items[2].replace(":radio","").replace(":checkbox","").replace(":file","").replace(":references","")+"\"] }}{% endfor %}"+"{% endblock %}{% block liens %}<a href=\"/\">bienvenue</a>"+"<a href=\"/add_one_{filename}\"> add one {filename}</a>".format(filename=filename)+"{% endblock %}")
 
 
-with open("./route.py", "r") as f:
-  contents = f.readlines()
-
-
-#index=[i for i in range(len(contents)) if "class S(BaseHTTPRequestHandler):" in contents[i]][0]
-#contents.insert(index, scriptfunc.format(myfavdirectory=myfavdirectory,myclass=filename,myhtml=myhtml))
-#contents.insert(1, "global {myclass}\n".format(myclass=filename))
-#contents.insert(1, "import {myclass}\n".format(myclass=filename))
-#contents.insert(1, "from {myclass} import {myclass}page\n".format(myclass=filename))
-#myrouteget="\"/{myclass}\":{myclass}func,\n"
-#index=[i for i in range(len(contents)) if "myroutes = {" in contents[i]][0]
-#contents.insert((index+1), myrouteget.format(myclass=filename))
-#index=[i for i in range(len(contents)) if "def reloadmymodules" in contents[i]][0]
-#contents.insert((index+1), "    reload({myclass})\n".format(myclass=filename))
-#index=[i for i in range(len(contents)) if "__mots__={" in contents[i]][0]
-#contents.insert((index+1), "    \"/{myclass}\":{\"partiedemesmots\":\"{myclass}\"},\n".replace("{myclass}",filename))
-
-#with open("./script.py", "w") as f:
-#    contents = "".join(contents)
-#    f.write(contents)
-
-#os.system("mkdir %s" % myfavdirectory)
-#pathhtml="%s/%s.html" % (myfavdirectory, myhtml)
-#os.system("touch %s" % pathhtml)
-
-#if os.path.isfile(pathhtml):
-#    with open(pathhtml, "w") as f:
-#        urlayout="""<h1>Layout de la route {myclass}</h1>
-#<p><a href="{marouteget}">nous sommes ici (essayez ce lien)</a></p>
-#<p>Entrez du texte sur cette page</p>
-#"""
-#          f.write(urlayout.format(marouteget=marouteget,myclass=filename))
-#
-#  #print("ma route get %s a été ajoutée. Maintenant vous pouvez essayer d'y acceder" % marouteget)
+if filename == "user":
+    with open("templates/"+filename+"login.html", "w") as myfile:
+        myfile.write("{% extends 'base.html' %}{% block content %}<h1>signin</h1><form method=\"POST\"><div><label>username</label><input name=\"username\"/><div><label>username</label><input name=\"password\" type=\"password\"/></div><div class=\"actions\"><input type=\"submit\"/></div></form>" + "{% for x in "+filename+"s %}{{"+ "x[\""+items[2].replace(":radio","").replace(":checkbox","").replace(":file","").replace(":references","")+"\"] }}{% endfor %}"+"{% endblock %}{% block liens %}<a href=\"/\">bienvenue</a>"+"<a href=\"/add_one_{filename}\"> s'inscrire (add one {filename})</a>".format(filename=filename)+"{% endblock %}")
+    

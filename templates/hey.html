@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block montitre %}
+debut de mes mots: bienvenue dans hacker cafe
+{% endblock %}
+{% block content %}
+<h1># hacker-cafe</h1>
+{% for x in users | reverse %}
+ <li>{{ x["first_name"]  }}</li>
+
+{% endfor %} 
+fin de mes mots : Le contrôleur de train a vérifié le porte-carte pour les billets valides. The train conductor checked the passholder for valid ticketsdisplay_rule (Nouveau/Ajusté) : id, display_mode:radio(PUBLIC|HIDDEN|RESTRICTED), title, description, web_development_route_id:references Ce qui a été ajouté / modifié dans la structure :
+1. Découpage de la Requête SQL (SQL_BOY_PART vs SQL_GIRL_NOT_PART)
+
+Au lieu davoir un seul bloc SQL, la requête est découpée en deux tables reliées à SQL_QUERY_CONTROLLER :
+
+    SQL_BOY_PART (Partie du Garçon) :
+
+        select_clause : Contient le SELECT ... FROM ... JOIN ... (il va chercher les données brutes).
+
+        positive_conditions : Les filtres de base (ex: WHERE mean_of_transportation = train).
+
+    SQL_GIRL_NOT_PART (Partie de la Fille) :
+
+        not_condition : Elle détient lexclusivité du NOT (ex: WHERE NOT conductor_id = 5, AND NOT IN (secret_station)).
+
+        is_not_applied : Un interrupteur (booleen) où elle décide si sa clause NOT sapplique ou annule la requête.
+
+    Résultat : La requête finale assemblée ressemble à :
+    [Champs du Garçon] + [Conditions du Garçon] + AND NOT [Exclusion de la Fille].
+
+2. Découpage du Contrôleur et Garde des Vues (RAILS_CONTROLLER vs RAILS_VIEW_GUARD)
+
+    RAILS_CONTROLLER (La Fille) :
+
+        controller_name : Nom du contrôleur Rails (ex: RoutesController).
+
+        before_action_filters : Cest elle qui gère la logique de contrôle et daccès avant dautoriser laccès aux données.
+
+        Cest son contrôleur qui orchestre lappel à la requête SQL.
+
+    RAILS_VIEW_GUARD (Le Garçon - Garde des Vues) :
+
+        view_template_path : Le chemin vers le fichier de vue (ex: app/views/routes/index.html.erb).
+
+        is_rendered : Il valide si la vue peut être dessinée et affichée à lécran.
+
+        Il reçoit les données filtrées par le contrôleur de la fille pour construire le rendu visuel.
+{% endblock %}
+{% block liens %}
+<a href="/">welcome</a>
+{% endblock %}
+<a href="/add_one_country"> add one country</a><a href="/add_one_city"> add one city</a><a href="/add_one_sql_girl_not_part"> add one sql_girl_not_part</a><a href="/add_one_sql_boy_part"> add one sql_boy_part</a><a href="/add_one_rails_view_guard"> add one rails_view_guard</a><a href="/add_one_rails_controller"> add one rails_controller</a><a href="/add_one_user"> add one user</a><a href="/add_one_street"> add one street</a><a href="/add_one_station"> add one station</a><a href="/add_one_display_rule"> add one display_rule</a><a href="/add_one_pedestrian_route"> add one pedestrian_route</a><a href="/add_one_sql_query_controller"> add one sql_query_controller</a><a href="/add_one_afficher"> add one afficher</a><a href="/add_one_webapp"> add one webapp</a><a href="/add_one_waypoint"> add one waypoint</a><a href="/add_one_web_development_route"> add one web_development_route</a><a href="/add_one_train_conductor"> add one train_conductor</a><a href="/add_one_public_transportation_route"> add one public_transportation_route</a><a href="/add_one_query_log"> add one query_log</a>

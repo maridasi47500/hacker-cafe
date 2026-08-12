@@ -1,0 +1,21 @@
+
+mkdir templates 
+python3 scaffold.py country name
+python3 scaffold.py city name country_id:references
+python3 scaffold.py sql_girl_not_part not_condition is_not_applied:radio sql_query_controller_id:references
+python3 scaffold.py sql_boy_part positive_conditions select_clause sql_query_controller_id:references
+python3 scaffold.py rails_view_guard view_template_path layout_format is_rendered:radio rails_controller_id:references
+python3 scaffold.py rails_controller controller_name action_name before_action_filters web_development_route_id:references
+python3 scaffold.py user username phone email password country_id:references
+python3 scaffold.py street name city_id:references
+python3 scaffold.py station city_id:references name
+python3 scaffold.py display_rule display_mode:radio title description web_development_route_id:references
+python3 scaffold.py pedestrian_route lat lon street_id:references user_id:references
+python3 scaffold.py sql_query_controller web_development_route_id:references query description
+python3 scaffold.py afficher affichage:radio web_development_route title description
+python3 scaffold.py webapp name user_id:references description
+python3 scaffold.py waypoint lat lon sequence_order pedestrian_route_id:references
+python3 scaffold.py web_development_route name  webapp_id:references description
+python3 scaffold.py train_conductor name fm public_transportation_route_id:references pic
+python3 scaffold.py public_transportation_route mean_of_transportation web_development_route_id:references pedestrian_route_id:references destination departure_station_id:references
+python3 scaffold.py query_log executed_query executed_at sql_query_controller_id:references
