@@ -7,3 +7,7 @@ sh mysite.sh
 ![alt text](cafe1.png) 
 - salut je suis le hacker du cafe (il y a une partir qui voit seulement lea donnees, et une partie pour tout afficher)
 - voyage avec un carnet dadresse se musique avec unw base de donneea et des transports
+
+
+- the girl doesn't try to find out
+- 
